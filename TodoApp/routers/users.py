@@ -27,15 +27,36 @@ db_dependency = Annotated[Session, Depends(get_db)]
 user_dependency = Annotated[dict, Depends(get_current_user)]
 bcrypt_context = CryptContext(schemes=["bcrypt"], deprecated='auto')
 
+
 class UserVerification(BaseModel):
     password: str
     new_password: str = Field(min_length=6)
 
-@router.get("/", status_code=status.HTTP_200_OK)
+
+class UserResponse(BaseModel):
+    username: str
+    email: str
+    first_name: str
+    last_name: str
+    role: str
+    phone_number: str
+
+    class Config:
+        from_attributes = True
+
+
+@router.get("/", status_code=status.HTTP_200_OK, response_model=UserResponse)
 async def get_user(user: user_dependency, db: db_dependency):
     if user is None:
         raise HTTPException(status_code=401, detail="Authentication failed")
-    return db.query(Users).filter(Users.id == user.get('user_id')).first()
+
+    user_model = db.query(Users).filter(Users.id == user.get('user_id')).first()
+
+    if user_model is None:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    return user_model
+
 
 @router.put("/password", status_code=status.HTTP_204_NO_CONTENT)
 async def update_password(user: user_dependency, db: db_dependency,
