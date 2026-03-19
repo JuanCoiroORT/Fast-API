@@ -34,7 +34,7 @@ def todo_page(request: Request, db: db_dependency, current_user: dict = Depends(
         } for t in todos
     ]
 
-    return templates.TemplateResponse("todos.html", {"request": request, "todos": todos_list})
+    return templates.TemplateResponse("todos.html", {"request": request, "todos": todos_list, "user": current_user})
 
 
 # --- Page para editar un todo ---
@@ -56,7 +56,7 @@ def edit_todo_page(todo_id: int, request: Request, db: db_dependency, current_us
         "complete": todo.complete
     }
 
-    return templates.TemplateResponse("edit-todo.html", {"request": request, "todo": todo_data})
+    return templates.TemplateResponse("edit-todo.html", {"request": request, "todo": todo_data, "user": current_user})
 
 
 # --- Endpoints ---
@@ -93,7 +93,7 @@ async def create_todo(request: Request, db: db_dependency, current_user: dict = 
         description=data.get("description", ""),
         priority=data.get("priority", 1),
         complete=data.get("complete", False),
-        user_id=current_user["user_id"]  # <-- asignar el id del usuario logueado
+        owner_id=current_user["user_id"]  # <-- asignar el id del usuario logueado
     )
 
     db.add(new_todo)

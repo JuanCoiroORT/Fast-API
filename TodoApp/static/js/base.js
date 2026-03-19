@@ -77,10 +77,13 @@ if (registerForm) {
 
 // Add Todo
 const todoForm = document.getElementById('todoForm');
+
 if (todoForm) {
     todoForm.addEventListener('submit', async (event) => {
         event.preventDefault();
+
         const data = Object.fromEntries(new FormData(todoForm).entries());
+
         const payload = {
             title: data.title,
             description: data.description,
@@ -93,28 +96,30 @@ if (todoForm) {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify(payload),
-                credentials: 'include' // <- envía cookie automáticamente
+                credentials: 'include'
             });
 
             if (response.ok) {
-                form.reset();
+                document.getElementById('todoForm')?.reset();
                 window.location.href = '/todos/todo-page';
             } else {
-                const errorData = await response.json();
-                alert(`Error: ${errorData.detail}`);
+                const text = await response.text();
+                console.error(text);
+                alert('Error creando todo');
             }
         } catch (err) {
             console.error('Error:', err);
-            alert('An error occurred. Please try again.');
         }
     });
 }
 
 // Edit Todo
 const editTodoForm = document.getElementById('editTodoForm');
+
 if (editTodoForm) {
     editTodoForm.addEventListener('submit', async (event) => {
         event.preventDefault();
+
         const data = Object.fromEntries(new FormData(editTodoForm).entries());
         const todoId = window.location.pathname.split("/").pop();
 
@@ -130,18 +135,49 @@ if (editTodoForm) {
                 method: 'PUT',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify(payload),
-                credentials: 'include' // <- envía cookie automáticamente
+                credentials: 'include'
+            });
+
+            if (response.ok) {
+                editTodoForm.reset(); // ✅ evitar usar "form"
+                window.location.href = '/todos/todo-page';
+            } else {
+                const text = await response.text();
+                console.error(text);
+                alert('Error actualizando todo');
+            }
+        } catch (err) {
+            console.error('Error:', err);
+        }
+    });
+}
+
+
+// ================== DELETE ==================
+const deleteButton = document.getElementById('deleteButton');
+
+if (deleteButton) {
+    deleteButton.addEventListener('click', async () => {
+
+        const todoId = window.location.pathname.split("/").pop();
+
+
+        try {
+            const response = await fetch(`/todos/todo/${todoId}`, {
+                method: 'DELETE',
+                credentials: 'include'
             });
 
             if (response.ok) {
                 window.location.href = '/todos/todo-page';
             } else {
-                const errorData = await response.json();
-                alert(`Error: ${errorData.detail}`);
+                const text = await response.text();
+                console.error(text);
+                alert('Error eliminando todo');
             }
         } catch (err) {
             console.error('Error:', err);
-            alert('An error occurred. Please try again.');
+            alert('An error occurred.');
         }
     });
 }
